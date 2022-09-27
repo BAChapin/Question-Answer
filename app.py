@@ -43,7 +43,7 @@ def register():
         db.commit()
         return '<h1>User created!</h1>'
 
-    return render_template('register.html')
+    return render_template('register.html', user=user)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -57,41 +57,41 @@ def login():
 
         if check_password_hash(user_result['password'], password):
             session['user'] = name
-            return redirect(url_for('index'))
+            return redirect(url_for('index', user=user))
         else:
             return '<h1>The password is incorrect!</h1>'
 
-    return render_template('login.html')
+    return render_template('login.html', user=user)
 
 @app.route('/question')
 def question():
     user = get_current_user()
-    return render_template('question.html')
+    return render_template('question.html', user=user)
 
 @app.route('/answer')
 def answer():
     user = get_current_user()
-    return render_template('answer.html')
+    return render_template('answer.html', user=user)
 
 @app.route('/ask')
 def ask():
     user = get_current_user()
-    return render_template('ask.html')
+    return render_template('ask.html', user=user)
 
 @app.route('/unanswered')
 def unanswered():
     user = get_current_user()
-    return render_template('unanswered.html')
+    return render_template('unanswered.html', user=user)
 
 @app.route('/users')
 def users():
     user = get_current_user()
-    return render_template('users.html')
+    return render_template('users.html', user=user)
 
 @app.route('/logout')
 def logout():
     session.pop('user', None)
-    return redirect(url_for('index'))
+    return redirect(url_for('index', user=None))
 
 if __name__ == '__main__':
     app.run(debug=True)
