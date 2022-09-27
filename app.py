@@ -41,7 +41,9 @@ def register():
                     values (?, ?, ?, ?)''', [request.form['name'],
                                              hash_password, '0', '0'])
         db.commit()
-        return '<h1>User created!</h1>'
+
+        session['user'] = request.form['name']
+        return redirect(url_for('index'))
 
     return render_template('register.html', user=user)
 
