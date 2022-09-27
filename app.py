@@ -11,15 +11,27 @@ def close_db(error):
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
 
-@app.route('/')
-def index():
-    user = None
+def get_current_user():
+    user_result = None
     if 'user' in session:
         user = session['user']
+
+        db = get_db()
+        user_cur = db.execute('select id, name, password, expert, admin from users where name = ?', [user])
+        user_result = user_cur.fetchone()
+
+    return user_result
+
+
+
+@app.route('/')
+def index():
+    user = get_current_user()
     return render_template('home.html', user=user)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    user = get_current_user()
     db = get_db()
 
     if request.method == 'POST':
@@ -35,6 +47,7 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    user = get_current_user()
     db = get_db()
     if request.method == 'POST':
         name = request.form['name']
@@ -44,7 +57,7 @@ def login():
 
         if check_password_hash(user_result['password'], password):
             session['user'] = name
-            return '<h1>Bingo! The password is correct!</h1>'
+            return redirect(url_for('index'))
         else:
             return '<h1>The password is incorrect!</h1>'
 
@@ -52,22 +65,27 @@ def login():
 
 @app.route('/question')
 def question():
+    user = get_current_user()
     return render_template('question.html')
 
 @app.route('/answer')
 def answer():
+    user = get_current_user()
     return render_template('answer.html')
 
 @app.route('/ask')
 def ask():
+    user = get_current_user()
     return render_template('ask.html')
 
 @app.route('/unanswered')
 def unanswered():
+    user = get_current_user()
     return render_template('unanswered.html')
 
 @app.route('/users')
 def users():
+    user = get_current_user()
     return render_template('users.html')
 
 @app.route('/logout')
