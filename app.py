@@ -70,10 +70,19 @@ def question():
     user = get_current_user()
     return render_template('question.html', user=user)
 
-@app.route('/answer')
-def answer():
+@app.route('/answer/<question_id>', methods=['GET', 'POST'])
+def answer(question_id):
     user = get_current_user()
-    return render_template('answer.html', user=user)
+    db = get_db()
+
+    if request.method == 'POST':
+        db.execute('update questions set answer_text = ? where id = ?', [request.form['answer'], question_id])
+        db.commit()
+        return redirect(url_for('unanswered'))
+
+    question_cur = db.execute('select id, question_text from questions where id = ?', [question_id])
+    question_result = question_cur.fetchone()
+    return render_template('answer.html', user=user, question=question_result)
 
 @app.route('/ask', methods=['GET', 'POST'])
 def ask():
