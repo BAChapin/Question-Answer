@@ -28,7 +28,16 @@ def get_current_user():
 def index():
     user = get_current_user()
     db = get_db()
-    question_cur = db.execute('select questions.id as question_id, questions.question_text, askers.name as asker_name, experts.name as expert_name from questions join users as askers on askers.id = questions.asked_by_id join users as experts on experts.id = questions.expert_id where questions.answer_text is not null')
+    question_cur = db.execute('''select questions.id as question_id,
+                                        questions.question_text,
+                                        askers.name as asker_name,
+                                        experts.name as expert_name 
+                                 from questions
+                                 join users as askers 
+                                 on askers.id = questions.asked_by_id
+                                 join users as experts
+                                 on experts.id = questions.expert_id
+                                 where questions.answer_text is not null''')
     question_results = question_cur.fetchall()
     return render_template('home.html', user=user, questions=question_results)
 
@@ -38,7 +47,9 @@ def register():
     db = get_db()
 
     if request.method == 'POST':
-        existing_user_cur = db.execute('select id from users where users.name = ?', [request.form['name']])
+        existing_user_cur = db.execute('''select id from users 
+                                          where users.name = ?''',
+                                          [request.form['name']])
         existing_user = existing_user_cur.fetchone()
 
         if existing_user:
@@ -65,7 +76,8 @@ def login():
     if request.method == 'POST':
         name = request.form['name']
         password = request.form['password']
-        user_cur = db.execute('select id, name, password from users where name = ?', [name])
+        user_cur = db.execute('''select id, name, password
+                                 from users where name = ?''', [name])
         user_result = user_cur.fetchone()
 
         if user_result:
@@ -83,7 +95,16 @@ def login():
 def question(question_id):
     user = get_current_user()
     db = get_db()
-    question_cur = db.execute('select questions.question_text, questions.answer_text, askers.name as asker_name, experts.name as expert_name from questions join users as askers on askers.id = questions.asked_by_id join users as experts on experts.id = questions.expert_id where questions.id = ?', [question_id])
+    question_cur = db.execute('''select questions.question_text,
+                                        questions.answer_text,
+                                        askers.name as asker_name,
+                                        experts.name as expert_name 
+                                 from questions
+                                 join users as askers
+                                 on askers.id = questions.asked_by_id 
+                                 join users as experts 
+                                 on experts.id = questions.expert_id 
+                                 where questions.id = ?''', [question_id])
     question_result = question_cur.fetchone()
 
     return render_template('question.html', user=user, question=question_result)
@@ -101,7 +122,8 @@ def answer(question_id):
     db = get_db()
 
     if request.method == 'POST':
-        db.execute('update questions set answer_text = ? where id = ?', [request.form['answer'], question_id])
+        db.execute('update questions set answer_text = ? where id = ?', 
+                   [request.form['answer'], question_id])
         db.commit()
         return redirect(url_for('unanswered'))
 
@@ -141,10 +163,13 @@ def unanswered():
         return redirect(url_for('index'))
 
     db = get_db()
-    questions_cur = db.execute('''select questions.id, questions.question_text, users.name 
+    questions_cur = db.execute('''select questions.id, 
+                                         questions.question_text, 
+                                         users.name 
                                   from questions
                                   join users on users.id = questions.asked_by_id 
-                                  where questions.answer_text is null and questions.expert_id = ?''', [user['id']])
+                                  where questions.answer_text is null 
+                                  and questions.expert_id = ?''', [user['id']])
     question_results = questions_cur.fetchall()
 
     return render_template('unanswered.html', user=user, questions=question_results)
